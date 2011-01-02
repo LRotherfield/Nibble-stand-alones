@@ -17,16 +17,24 @@ make developing easier.  The current two stand alone's available are:
 Simple form example:
 
 `$form = NibbleForm::getInstance('', 'Submit this form','post',true,'flash');
+
   $form->username = new Text('Please enter your username', true, 20, '/[a-zA-Z0-9]+/');
+
   $form->email = new Email('Please enter your email');
+
   $form->email->addConfirmation('Please confirm your email');
+
   $form->password = new Password('Please enter your password', 11, true, true, 12);
+
   $form->password->addConfirmation('Please confirm your password');
 `
 
 Simple flash example:
 
-`$flash->flashMessage('Message content goes here, 5s lifetime','Message title goes here',5000);`
+$flash = Flash::getInstance();`
+
+$flash->flashMessage('Message content goes here, 5s lifetime','Message title goes here',5000);
+`
   
 Hopefully one of these stand alones will make your day easier, both are served with the 
 MIT license:
