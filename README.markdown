@@ -1,4 +1,4 @@
-Nibble stand alone PHP classes and library's
+Nibble stand alone PHP Form and flash messaging classes
 ============================================
 
 Nibble stand alone's are simple PHP classes or library's (collection of classes) that 
