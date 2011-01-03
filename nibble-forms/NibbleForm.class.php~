@@ -2,6 +2,7 @@
 
 /*
  * Nibble forms library
+ * Version: 1.1.2
  * Copyright (c) 2010 Luke Rotherfield, Nibble Development
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -122,11 +123,10 @@ class NibbleForm {
   }
 
   private function setMessages($message, $title) {
-    $title = preg_replace('/_/', ' ', ucfirst($title));
     if ($this->message_type == 'flash')
-      $this->flash->message(ucfirst($message), $title, 0, true);
+      $this->flash->message($message, $title, 0, true);
     elseif ($this->message_type == 'list')
-      $this->messages[] = array('title' => $title, 'message' => ucfirst($message));
+      $this->messages[] = array('title' => $title, 'message' => $message);
   }
 
   private function buildMessages() {
@@ -304,29 +304,6 @@ class Password extends Text {
     }
   }
 
-}
-
-class TextArea extends Text{
-
-  private $class;
-  private $rows;
-  private $cols;
-
-  public function  __construct($label, $class = '', $required = true, $rows = 10, $cols = 80, $content = '/.*/') {
-    parent::__construct($label, $required, false, $content);
-    $this->class = $class;
-    $this->rows = $rows;
-    $this->cols = $cols;
-  }
-
-  public function returnField($name, $value = '') {
-    $class = !empty($this->error) ? ' class="error"' : '';
-    return array(
-      'messages' => $this->error,
-      'label' => sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
-      'field' => sprintf('<textarea name="%1$s" id="%1$s" class="%2$s" >%3$s</textarea>', $name, $this->class, $value)
-    );
-  }
 }
 
 abstract class Options implements FormField {
