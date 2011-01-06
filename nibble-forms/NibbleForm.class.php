@@ -139,10 +139,11 @@ class NibbleForm {
   }
 
   public function validate() {
-    if ((isset($_SESSION['token']) && $_POST['token'] != $_SESSION['token']) || !isset($_SESSION['token']) || !isset($_POST['token'])) {
+    if ((isset($_SESSION['token']) && !in_array($_POST['token'],$_SESSION['token']))  || !isset($_SESSION['token']) || !isset($_POST['token'])) {
       $this->setMessages('CRSF token invalid', 'CRSF error');
       $this->valid = false;
     }
+    $_SESSION['token'] = array();
     if ($this->sticky)
       $this->addData($_POST);
     foreach ($this->fields as $key => $value)
@@ -168,7 +169,9 @@ class NibbleForm {
   }
 
   public function render() {
-    $_SESSION['token'] = Useful::randomString(20);
+    if(!isset($_SESSION['token']))
+      $_SESSION['token'] = array();
+    $_SESSION['token'][] = Useful::randomString(20);
     $fields = '';
     $error = $this->valid ? '' : '<p class="error">Sorry there were some errors in the form, problem fields have been highlighted</p>';
     $format = (object) $this->formats[$this->format];
@@ -202,6 +205,7 @@ class NibbleForm {
       $this->buildMessages();
     else
       $this->messages = false;
+    $token = $_SESSION['token'][count($_SESSION['token']) -1];
     self::$instance = false;
     return <<<FORM
     $error
@@ -209,7 +213,7 @@ class NibbleForm {
     <form class="form" action="$this->action" method="$this->method" enctype="multipart/form-data">
       $format->open_form
         $format->open_form_body
-          <input type="hidden" value="{$_SESSION['token']}" name="token" />
+          <input type="hidden" value="$token" name="token" />
           $fields
         $format->close_form_body
         $format->open_submit
@@ -251,7 +255,7 @@ class Text extends FormField {
     if ($this->required)
       if (Useful::stripper($val) === false)
         $this->error[] = 'is required';
-    if (Useful::stripper($val) != '')
+    if (Useful::stripper($val) !== false)
       if (!preg_match($this->content, $val))
         $this->error[] = 'is not valid';
     return!empty($this->error) ? false : true;
@@ -267,7 +271,7 @@ class Email extends Text {
     if (!empty($this->error))
       return false;
     if (parent::validate($val))
-      if (Useful::stripper($val) != '') {
+      if (Useful::stripper($val) !== false) {
         if (!filter_var($val, FILTER_VALIDATE_EMAIL))
           $this->error[] = 'must be a valid email address';
       }
@@ -314,7 +318,7 @@ class Password extends Text {
     if (!empty($this->error))
       return false;
     if (parent::validate($val)) {
-      if (Useful::stripper($val) != '') {
+      if (Useful::stripper($val) !== false) {
         if (strlen($val) < $this->min_length)
           $this->error[] = sprintf('must be more than %s characters', $this->min_length);
         if ($this->alphanumeric && (!preg_match("#[A-Za-z]+#", $val) || !preg_match("#[0-9]+#", $val)))
@@ -364,7 +368,7 @@ class TextArea extends Text {
   private $rows;
   private $cols;
 
-  public function __construct($label, $class = '', $required = true, $rows = 10, $cols = 80, $content = '/.*/') {
+  public function __construct($label, $class = '', $required = true, $rows = 10, $cols = 60, $content = '/.*/') {
     parent::__construct($label, $required, false, $content);
     $this->class = $class;
     $this->rows = $rows;
@@ -376,7 +380,7 @@ class TextArea extends Text {
     return array(
       'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
       'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
-      'field' => sprintf('<textarea name="%1$s" id="%1$s" class="%2$s" >%3$s</textarea>', $name, $this->class, $value),
+      'field' => sprintf('<textarea name="%1$s" id="%1$s" class="%2$s" rows="%4$s" cols="%5$s">%3$s</textarea>', $name, $this->class, $value, $this->rows, $this->cols),
       'html' => $this->html
     );
   }
@@ -400,7 +404,7 @@ abstract class Options extends FormField {
 
   public function validate($val) {
     if ($this->required)
-      if (Useful::stripper($val) === '')
+      if (Useful::stripper($val) === false)
         $this->error[] = 'is required';
     if (in_array($val, $this->false_values))
       $this->error[] = 'is not a valid selection';
@@ -625,6 +629,7 @@ class File extends FormField {
   }
 
 }
+
 class Useful {
 
   public static function stripper($val) {

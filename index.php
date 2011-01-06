@@ -13,15 +13,10 @@
   include dirname(__FILE__).'/nibble-forms/NibbleForm.class.php';
   $form = NibbleForm::getInstance('', 'Submit this form','post',true,'flash');
   $form->username = new Text('Please enter your username', true, 20, '/[a-zA-Z0-9]+/');
-  $form->email = new Email('Please enter your email');
+  $form->email = new Email('Please enter your email',false);
   $form->email->addConfirmation('Please confirm your email');
   $form->password = new Password('Please enter your password', 11, true, true, 12);
   $form->password->addConfirmation('Please confirm your password');
-  $form->radio = new Radio('Please select one of the following', array(
-    'One' => 'Choice one, dont choose',
-    'car' => 'Choice two',
-    'Choice three'
-  ),true,array('car'));
   $form->checkbox = new Checkbox('Please select one of the following', array(
     'One' => 'Choice one, dont choose',
     'car' => 'Choice two',
