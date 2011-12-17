@@ -27,10 +27,10 @@ abstract class FormField {
 
   public $custom_error = array();
   public $html = array(
-    'open_field' => false,
-    'close_field' => false,
-    'open_html' => false,
-    'close_html' => false
+      'open_field' => false,
+      'close_field' => false,
+      'open_html' => false,
+      'close_html' => false
   );
 
   /**
@@ -73,30 +73,30 @@ class NibbleForm {
   private $flash;
   private $messages = '';
   private $formats = array(
-    'list' => array(
-      'open_form' => '<ul>',
-      'close_form' => '</ul>',
-      'open_form_body' => '',
-      'close_form_body' => '',
-      'open_field' => '',
-      'close_field' => '',
-      'open_html' => "<li>\n",
-      'close_html' => "</li>\n",
-      'open_submit' => "<li>\n",
-      'close_submit' => "</li>\n"
-    ),
-    'table' => array(
-      'open_form' => '<table>',
-      'close_form' => '</table>',
-      'open_form_body' => '<tbody>',
-      'close_form_body' => '</tbody>',
-      'open_field' => "<tr>\n",
-      'close_field' => "</tr>\n",
-      'open_html' => "<td>\n",
-      'close_html' => "</td>\n",
-      'open_submit' => '<tfoot><tr><td>',
-      'close_submit' => '</td></tr></tfoot>'
-    )
+      'list' => array(
+          'open_form' => '<ul>',
+          'close_form' => '</ul>',
+          'open_form_body' => '',
+          'close_form_body' => '',
+          'open_field' => '',
+          'close_field' => '',
+          'open_html' => "<li>\n",
+          'close_html' => "</li>\n",
+          'open_submit' => "<li>\n",
+          'close_submit' => "</li>\n"
+      ),
+      'table' => array(
+          'open_form' => '<table>',
+          'close_form' => '</table>',
+          'open_form_body' => '<tbody>',
+          'close_form_body' => '</tbody>',
+          'open_field' => "<tr>\n",
+          'close_field' => "</tr>\n",
+          'open_html' => "<td>\n",
+          'close_html' => "</td>\n",
+          'open_submit' => '<tfoot><tr><td>',
+          'close_submit' => '</td></tr></tfoot>'
+      )
   );
   private $multiple_errors;
   public static $instance;
@@ -139,7 +139,7 @@ class NibbleForm {
   }
 
   public function validate() {
-    if ((isset($_SESSION['token']) && !in_array($_POST['token'],$_SESSION['token']))  || !isset($_SESSION['token']) || !isset($_POST['token'])) {
+    if ((isset($_SESSION['token']) && !in_array($_POST['token'], $_SESSION['token'])) || !isset($_SESSION['token']) || !isset($_POST['token'])) {
       $this->setMessages('CRSF token invalid', 'CRSF error');
       $this->valid = false;
     }
@@ -169,7 +169,7 @@ class NibbleForm {
   }
 
   public function render() {
-    if(!isset($_SESSION['token']))
+    if (!isset($_SESSION['token']))
       $_SESSION['token'] = array();
     $_SESSION['token'][] = Useful::randomString(20);
     $fields = '';
@@ -190,13 +190,15 @@ class NibbleForm {
       $fields .= $format->open_field;
       if ($temp['label'])
         $fields .= $format->open_html . $temp['label'] . $format->close_html;
-      foreach ($temp['messages'] as $message) {
-        if ($this->message_type == 'inline')
-          $fields .= $format->open_html . '<p class="error">This field ' . $message . '</p>' . $format->close_html;
-        else
-          $this->setMessages($message, $key);
-        if (!$this->multiple_errors)
-          break;
+      if (isset($temp['messages'])) {
+        foreach ($temp['messages'] as $message) {
+          if ($this->message_type == 'inline')
+            $fields .= $format->open_html . '<p class="error">This field ' . $message . '</p>' . $format->close_html;
+          else
+            $this->setMessages($message, $key);
+          if (!$this->multiple_errors)
+            break;
+        }
       }
       $fields .= $format->open_html . $temp['field'] . $format->close_html . $format->close_field;
     }
@@ -205,7 +207,7 @@ class NibbleForm {
       $this->buildMessages();
     else
       $this->messages = false;
-    $token = $_SESSION['token'][count($_SESSION['token']) -1];
+    $token = $_SESSION['token'][count($_SESSION['token']) - 1];
     self::$instance = false;
     return <<<FORM
     $error
@@ -233,6 +235,7 @@ class Text extends FormField {
   protected $max_length;
   protected $content;
   public $error = array();
+  public $field_type = 'text';
 
   public function __construct($label, $required = true, $max_length = 255, $content = '/.*/') {
     $this->label = $label;
@@ -241,13 +244,13 @@ class Text extends FormField {
     $this->content = $content;
   }
 
-  public function returnField($name, $value = '') {
+  public function returnField($name, $value = '', $type='text') {
     $class = !empty($this->error) ? ' class="error"' : '';
     return array(
-      'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
-      'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
-      'field' => sprintf('<input type="text" name="%1$s" id="%1$s" value="%2$s" maxlength="%3$s"%4$s />', $name, $value, $this->max_length, $class),
-      'html' => $this->html
+        'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
+        'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
+        'field' => sprintf('<input type="%5$s" name="%1$s" id="%1$s" value="%2$s" maxlength="%3$s"%4$s />', $name, $value, $this->max_length, $class, $this->field_type),
+        'html' => $this->html
     );
   }
 
@@ -259,6 +262,26 @@ class Text extends FormField {
       if (!preg_match($this->content, $val))
         $this->error[] = 'is not valid';
     return!empty($this->error) ? false : true;
+  }
+
+}
+
+class Url extends Text {
+
+  public function validate($val) {
+    if (!empty($this->error))
+      return false;
+    if (parent::validate($val))
+      if (Useful::stripper($val) !== false) {
+        if (!filter_var($val, FILTER_VALIDATE_URL))
+          $this->error[] = 'must be a valid URL';
+      }
+    return!empty($this->error) ? false : true;
+  }
+
+  public function returnField($name, $value = '') {
+    $this->field_type = 'url';
+    return parent::returnField($name, $value);
   }
 
 }
@@ -300,6 +323,11 @@ class Email extends Text {
     }
   }
 
+  public function returnField($name, $value = '') {
+    $this->field_type = 'email';
+    return parent::returnField($name, $value);
+  }
+
 }
 
 class Password extends Text {
@@ -335,13 +363,8 @@ class Password extends Text {
   }
 
   public function returnField($name, $value = '') {
-    $class = !empty($this->error) ? ' class="error"' : '';
-    return array(
-      'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
-      'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
-      'field' => sprintf('<input type="password" name="%1$s" id="%1$s" value="%2$s" maxlength="%3$s"%4$s />', $name, $value, $this->max_length, $class),
-      'html' => $this->html
-    );
+    $this->field_type = 'password';
+    return parent::returnField($name, $value);
   }
 
   public function addConfirmation($label, $open_field = false, $close_field = false, $open_html = false, $close_html = false) {
@@ -378,10 +401,10 @@ class TextArea extends Text {
   public function returnField($name, $value = '') {
     $class = !empty($this->error) ? ' class="error"' : '';
     return array(
-      'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
-      'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
-      'field' => sprintf('<textarea name="%1$s" id="%1$s" class="%2$s" rows="%4$s" cols="%5$s">%3$s</textarea>', $name, $this->class, $value, $this->rows, $this->cols),
-      'html' => $this->html
+        'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
+        'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
+        'field' => sprintf('<textarea name="%1$s" id="%1$s" class="%2$s" rows="%4$s" cols="%5$s">%3$s</textarea>', $name, $this->class, $value, $this->rows, $this->cols),
+        'html' => $this->html
     );
   }
 
@@ -419,14 +442,14 @@ class Radio extends Options {
     $field = '';
     foreach ($this->options as $key => $val)
       $field .= sprintf('<input type="radio" name="%1$s" id="%3$s" value="%2$s" %4$s/>' .
-          '<label for=%3$s>%5$s</label>'
-          , $name, $key, Useful::slugify($name) . '_' . Useful::slugify($key), ((string) $key === (string) $value ? 'checked="checked"' : ''), $val);
+              '<label for=%3$s>%5$s</label>'
+              , $name, $key, Useful::slugify($name) . '_' . Useful::slugify($key), ((string) $key === (string) $value ? 'checked="checked"' : ''), $val);
     $class = !empty($this->error) ? ' class="error"' : '';
     return array(
-      'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
-      'label' => $this->label == false ? false : sprintf('<p%s>%s</p>', $class, $this->label),
-      'field' => $field,
-      'html' => $this->html
+        'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
+        'label' => $this->label == false ? false : sprintf('<p%s>%s</p>', $class, $this->label),
+        'field' => $field,
+        'html' => $this->html
     );
   }
 
@@ -448,10 +471,10 @@ class Select extends Options {
     $field .= '</select>';
     $class = !empty($this->error) ? ' class="error"' : '';
     return array(
-      'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
-      'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
-      'field' => $field,
-      'html' => $this->html
+        'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
+        'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
+        'field' => $field,
+        'html' => $this->html
     );
   }
 
@@ -489,14 +512,14 @@ class Checkbox extends MultipleOptions {
     $field = '';
     foreach ($this->options as $key => $val)
       $field .= sprintf('<input type="checkbox" name="%1$s[]" id="%3$s" value="%2$s" %4$s/>' .
-          '<label for=%3$s>%5$s</label>'
-          , $name, $key, Useful::slugify($name) . '_' . Useful::slugify($key), (is_array($value) && in_array((string) $key, $value) ? 'checked="checked"' : ''), $val);
+              '<label for=%3$s>%5$s</label>'
+              , $name, $key, Useful::slugify($name) . '_' . Useful::slugify($key), (is_array($value) && in_array((string) $key, $value) ? 'checked="checked"' : ''), $val);
     $class = !empty($this->error) ? ' class="error"' : '';
     return array(
-      'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
-      'label' => $this->label == false ? false : sprintf('<p%s>%s</p>', $class, $this->label),
-      'field' => $field,
-      'html' => $this->html
+        'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
+        'label' => $this->label == false ? false : sprintf('<p%s>%s</p>', $class, $this->label),
+        'field' => $field,
+        'html' => $this->html
     );
   }
 
@@ -518,10 +541,10 @@ class MultipleSelect extends MultipleOptions {
     $field .= '</select>';
     $class = !empty($this->error) ? ' class="error"' : '';
     return array(
-      'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
-      'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
-      'field' => $field,
-      'html' => $this->html
+        'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
+        'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
+        'field' => $field,
+        'html' => $this->html
     );
   }
 
@@ -539,35 +562,35 @@ class File extends FormField {
   private $min_height;
   private $min_width;
   private $mime_types = array(
-    'image' => array(
-      'image/gif', 'image/gi_', 'image/png', 'application/png', 'application/x-png',
-      'image/jp_', 'application/jpg', 'application/x-jpg', 'image/pjpeg', 'image/jpeg'
-    ),
-    'document' => array(
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/mspowerpoint', 'application/powerpoint', 'application/vnd.ms-powerpoint',
-      'application/x-mspowerpoint', 'application/plain', 'text/plain', 'application/pdf',
-      'application/x-pdf', 'application/acrobat', 'text/pdf', 'text/x-pdf', 'application/msword',
-      'pplication/vnd.ms-excel', 'application/msexcel', 'application/doc',
-      'application/vnd.oasis.opendocument.text', 'application/x-vnd.oasis.opendocument.text',
-      'application/vnd.oasis.opendocument.spreadsheet', 'application/x-vnd.oasis.opendocument.spreadsheet',
-      'application/vnd.oasis.opendocument.presentation', 'application/x-vnd.oasis.opendocument.presentation'
-    ),
-    'archive' => array(
-      'application/x-compressed', 'application/gzip-compressed', 'gzip/document',
-      'application/x-zip-compressed', 'application/zip', 'multipart/x-zip',
-      'application/tar', 'application/x-tar', 'applicaton/x-gtar', 'multipart/x-tar',
-      'application/gzip', 'application/x-gzip', 'application/x-gunzip', 'application/gzipped'
-    )
+      'image' => array(
+          'image/gif', 'image/gi_', 'image/png', 'application/png', 'application/x-png',
+          'image/jp_', 'application/jpg', 'application/x-jpg', 'image/pjpeg', 'image/jpeg'
+      ),
+      'document' => array(
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/mspowerpoint', 'application/powerpoint', 'application/vnd.ms-powerpoint',
+          'application/x-mspowerpoint', 'application/plain', 'text/plain', 'application/pdf',
+          'application/x-pdf', 'application/acrobat', 'text/pdf', 'text/x-pdf', 'application/msword',
+          'pplication/vnd.ms-excel', 'application/msexcel', 'application/doc',
+          'application/vnd.oasis.opendocument.text', 'application/x-vnd.oasis.opendocument.text',
+          'application/vnd.oasis.opendocument.spreadsheet', 'application/x-vnd.oasis.opendocument.spreadsheet',
+          'application/vnd.oasis.opendocument.presentation', 'application/x-vnd.oasis.opendocument.presentation'
+      ),
+      'archive' => array(
+          'application/x-compressed', 'application/gzip-compressed', 'gzip/document',
+          'application/x-zip-compressed', 'application/zip', 'multipart/x-zip',
+          'application/tar', 'application/x-tar', 'applicaton/x-gtar', 'multipart/x-tar',
+          'application/gzip', 'application/x-gzip', 'application/x-gunzip', 'application/gzipped'
+      )
   );
   private $error_types = array(
-    'image' => 'must be an image, e.g example.jpg or example.gif',
-    'archive' => 'must be and archive, e.g example.zip or example.tar',
-    'document' => 'must be a document, e.g example.doc or example.pdf',
-    'all' => 'must be a document, archive or image',
-    'custom' => 'is invalid'
+      'image' => 'must be an image, e.g example.jpg or example.gif',
+      'archive' => 'must be and archive, e.g example.zip or example.tar',
+      'document' => 'must be a document, e.g example.doc or example.pdf',
+      'all' => 'must be a document, archive or image',
+      'custom' => 'is invalid'
   );
 
   public function __construct($label, $type = 'all', $required = true, $max_size = 2097152, $width = 1600, $height = 1600, $min_width = 0, $min_height = 0) {
@@ -600,10 +623,10 @@ class File extends FormField {
   public function returnField($name, $value = '') {
     $class = !empty($this->error) ? ' class="error"' : '';
     return array(
-      'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
-      'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
-      'field' => sprintf('<input type="file" name="%1$s" id="%1$s"/>', $name),
-      'html' => $this->html
+        'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
+        'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
+        'field' => sprintf('<input type="file" name="%1$s" id="%1$s"/>', $name),
+        'html' => $this->html
     );
   }
 
@@ -626,6 +649,83 @@ class File extends FormField {
         $this->error[] = $this->error_types[$this->type];
     }
     return!empty($this->error) ? false : true;
+  }
+
+}
+
+class Captcha extends FormField {
+
+  public $error = array();
+  protected $label;
+
+  public function __construct($label = 'Humanity Check') {
+    $this->label = $label;
+  }
+
+  public function returnField($name, $value = '') {
+    $field = <<<FIELD
+  <script type="text/javascript"
+     src="http://www.google.com/recaptcha/api/challenge?k=%1\$s">
+  </script>
+  <noscript>
+     <iframe src="http://www.google.com/recaptcha/api/noscript?k=%1\$s"
+         height="300" width="500" frameborder="0"></iframe><br>
+     <textarea name="recaptcha_challenge_field" rows="3" cols="40">
+     </textarea>
+     <input type="hidden" name="recaptcha_response_field"
+         value="manual_challenge">
+  </noscript>
+FIELD;
+    $class = !empty($this->error) ? ' class="error"' : '';
+    return array(
+        'messages' => !empty($this->custom_error) && !empty($this->error) ? $this->custom_error : $this->error,
+        'label' => $this->label == false ? false : sprintf('<label for="%s"%s>%s</label>', $name, $class, $this->label),
+        'field' => sprintf($field, 'YOUR_PUBLIC_KEY'),
+        'html' => $this->html
+    );
+  }
+
+  public function validate($val) {
+
+    $url = 'http://www.google.com/recaptcha/api/verify';
+    $data = array(
+        'privatekey' => urlencode('YOUR_PRIVATE_KEY'),
+        'remoteip' => urlencode($_SERVER['REMOTE_ADDR']),
+        'challenge' => urlencode($_REQUEST['recaptcha_challenge_field']),
+        'response' => urlencode($_REQUEST['recaptcha_response_field']),
+    );
+
+    $data_string = '';
+    foreach ($data as $key => $val) {
+      $data_string .= $key . '=' . $val . '&';
+    }
+    $data_string = rtrim($data_string, '&');
+
+    $host = 'www.google.com';
+    $http_request = "POST /recaptcha/api/verify HTTP/1.0\r\n";
+    $http_request .= "Host: $host\r\n";
+    $http_request .= "Content-Type: application/x-www-form-urlencoded;\r\n";
+    $http_request .= "Content-Length: " . strlen($data_string) . "\r\n";
+    $http_request .= "User-Agent: reCAPTCHA/PHP\r\n";
+    $http_request .= "\r\n";
+    $http_request .= $data_string;
+
+    $response = '';
+    if (false == ( $fs = @fsockopen($host, 80, $errno, $errstr, 10) )) {
+      die('Could not open socket');
+    }
+
+    fwrite($fs, $http_request);
+
+    while (!feof($fs))
+      $response .= fgets($fs, 1160); // One TCP-IP packet
+    fclose($fs);
+    $response = explode("\r\n\r\n", $response);
+    $response = explode("\n",$response[1]);
+    if(!isset($response[0])||$response[0] != 'true')
+      $this->error[] = 'You failed to prove you humanity';
+    //curl_close($ch);
+    return empty($this->error) ? true : false;
   }
 
 }

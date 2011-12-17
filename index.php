@@ -15,7 +15,8 @@
   $form->username = new Text('Please enter your username', true, 20, '/[a-zA-Z0-9]+/');
   $form->email = new Email('Please enter your email',false);
   $form->email->addConfirmation('Please confirm your email');
-  $form->password = new Password('Please enter your password', 11, true, true, 12);
+  $form->captcha = new Captcha();
+  /*$form->password = new Password('Please enter your password', 11, true, true, 12);
   $form->password->addConfirmation('Please confirm your password');
   $form->checkbox = new Checkbox('Please select one of the following', array(
     'One' => 'Choice one, dont choose',
@@ -33,7 +34,7 @@
     'username' => 'Luke',
     'radio' => 0,
     'checkbox' => array(1,'car')
-  ));
+  ));*/
   if(isset($_POST['submit'])){
     if($form->validate()){
       echo 'Valid';
