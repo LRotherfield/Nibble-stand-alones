@@ -266,6 +266,22 @@ class Text extends FormField {
 
 }
 
+class Hidden extends Text {
+
+  private $name;
+
+  public function __construct($name) {
+    parent::__construct('', false, 255, '/.*/');
+    $this->name = $name;
+  }
+
+  public function returnField($name, $value = '') {
+   
+    $this->field_type = 'hidden';
+    return parent::returnField($name, $value);
+  }
+}
+
 class Url extends Text {
 
   public function validate($val) {
